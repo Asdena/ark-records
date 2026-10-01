@@ -12,7 +12,7 @@ import {
   validateBackup,
   MAX_BACKUP,
 } from "./core.js";
-import { t, lang, setLanguage, strings } from "./i18n.js?v=1.0.1";
+import { t, lang, setLanguage, strings } from "./i18n.js?v=1.1.0";
 const $ = (s) => document.querySelector(s),
   esc = (s) =>
     String(s ?? "").replace(
@@ -75,9 +75,15 @@ const googleTimer = googleState === 'ready' ? null : setTimeout(() => {
   googleLoaded();
   if (googleState !== 'ready') toast('googleUnavailable', true);
 }, 15000);
-let theme = localStorage.getItem("ark-theme") || "system";
+let theme = localStorage.getItem("ark-theme") || "dark";
 document.documentElement.dataset.theme = theme;
 document.documentElement.lang = lang;
+let effects = localStorage.getItem('ark-effects') === 'off' ? 'off' : 'on';
+let palette = localStorage.getItem('ark-palette') || 'cyan';
+if (!['cyan','amber','violet'].includes(palette)) palette = 'cyan';
+let listView = localStorage.getItem('ark-list-view') === 'list' ? 'list' : 'grid';
+document.documentElement.dataset.effects = effects;
+document.documentElement.dataset.palette = palette;
 const people = () =>
   drive.entries
     .filter((e) => !e.record.deleted || e.heads.length > 1)
@@ -171,14 +177,24 @@ function connection() {
   const info = ready
     ? `<h3>${t('configReady')}</h3><p>${t(configSource === 'published' ? 'configPublished' : 'configLocal')}</p><p>${t('deviceLogin')}</p>`
     : `<h3>${t('setup')}</h3><p>${t(configSource === 'error' ? 'configLoadError' : 'setupText')}</p><form id="config-form"><div class="field"><label for="client-id">${t('clientId')}</label><input id="client-id" name="clientId" placeholder="123456789-….apps.googleusercontent.com" autocomplete="off" required></div><button type="submit">${t('saveConfig')}</button></form>`;
-  return `<div class="connect-panel"><section class="connect-intro"><div class="seal">${icon('lock')} ${t('archive')}</div><h2>${t('locked')}</h2><p class="muted">${t('connectText')}</p>${button('openArchive','connect','primary')}<p class="hint">${t('privacy')}</p></section><section class="connect-settings">${info}<p class="hint">v1.0.1 · <a href="SETUP.html" target="_blank" rel="noopener">${t('guide')}</a></p></section></div>`;
+  return `<div class="connect-panel"><section class="connect-intro"><div class="seal">${icon('lock')} ${t('archive')}</div><h2>${t('locked')}</h2><p class="muted">${t('connectText')}</p>${button('openArchive','connect','primary')}<p class="hint">${t('privacy')}</p></section><section class="connect-settings">${info}<p class="hint">v1.1.0 · <a href="SETUP.html" target="_blank" rel="noopener">${t('guide')}</a></p></section></div>`;
 }
 function render() {
   const title = route.startsWith("person/") ? "people" : route;
   $("#app").innerHTML =
-    `<div class="shell"><aside class="sidebar"><a href="#home" class="brand"><span class="mark">A</span><span>ARK RECORDS<small>PERSONAL ARCHIVE</small></span></a><nav aria-label="ARK">${["home", "people", "assistant", "settings"].map((k) => `<a href="#${k}" class="navitem ${title === k ? "active" : ""}">${icon(k)}${t(k)}</a>`).join("")}</nav><div class="sidefoot"><div class="rule">${t("tagline")}<br>${t("privacy")}</div></div></aside><main class="main"><header class="topbar"><strong>${t(title)}</strong><div class="session"><span class="status-dot ${connected ? "on" : ""}"></span><span>${t(connected ? "connected" : "notConnected")}</span>${connected ? button("logout", "logout", "quiet") : ""}</div></header><div class="content">${view()}</div></main></div>`;
+    `<div class="shell"><aside class="sidebar"><a href="#home" class="brand"><span class="mark">A</span><span>ARK RECORDS<small>MEMORY SYSTEM / 1.1</small></span></a><nav aria-label="ARK">${["home", "people", "assistant", "settings"].map((k) => `<a href="#${k}" class="navitem ${title === k ? "active" : ""}">${icon(k)}<span>${t(k)}</span></a>`).join("")}</nav><div class="sidefoot"><div class="rule">${t("tagline")}<br>${t("privacy")}</div></div></aside><main class="main"><header class="topbar"><div class="topbar-title"><span class="terminal-label">ARK /</span><strong>${t(title)}</strong></div><button type="button" class="command-trigger" data-action="commands" aria-haspopup="dialog">${icon("search")}<span>${t("quickMenu")}</span><kbd>Ctrl K</kbd></button><div class="session"><span class="status-dot ${connected ? "on" : ""}"></span><span>${t(connected ? "connected" : "notConnected")}</span>${connected ? button("logout", "logout", "quiet") : ""}</div></header><div class="content">${view()}<footer class="terminal-footer"><span>ARK RECORDS / 1.1.0</span><span>${t("privacy")}</span></footer></div></main></div>`;
   loadImages();
   updateConnectButtons();
+}
+function archiveStats() {
+  const ps = people();
+  return `<div class="archive-stats" aria-label="${t('archiveSummary')}">${[
+    ['people',ps.length], ['media',ps.reduce((n,p)=>n+p.media.length,0)],
+    ['memories',ps.reduce((n,p)=>n+p.memories.length,0)],
+  ].map(([key,n],i)=>`<div class="stat-cell"><span class="stat-index">0${i+1}</span><div><span class="stat-name">${t(key)}</span><strong>${String(n).padStart(2,'0')}</strong></div>${icon(key==='people'?'people':key==='media'?'home':'assistant')}</div>`).join('')}</div>`;
+}
+function viewButtons() {
+  return `<div class="view-toggle" role="group" aria-label="${t('viewLayout')}">${['grid','list'].map(v=>`<button type="button" data-action="view-layout" data-layout="${v}" aria-pressed="${listView===v}">${t(v+'View')}</button>`).join('')}</div>`;
 }
 function view() {
   if (route === "settings") return settings();
@@ -186,7 +202,7 @@ function view() {
     return `<p class="eyebrow">${t("archive")}</p><div class="heading"><div><h1>${t("welcome")}</h1><p class="muted">${t("subtitle")}</p></div></div>${connection()}`;
   if (route.startsWith("person/")) return profile(route.slice(7));
   if (route === "assistant") return assistant();
-  return `<div class="heading"><div><p class="eyebrow">${t("archive")}</p><h1>${t(route === "home" ? "welcome" : "people")}</h1><p class="muted">${t("subtitle")}</p></div>${button("add", "add", "primary")}</div><div class="searchbar">${icon("search")}<input id="search" aria-label="${t("search")}" placeholder="${t("search")}" value="${esc(query)}"></div>${route === "people" ? filters() : `<div class="actions">${button("assistant", "assistant")}${button("sync", "sync", "quiet")}</div>`}<div class="section-title"><h2>${t(route === "home" ? "recent" : "people")}</h2><span class="muted" id="result-count"></span></div><div id="results">${results()}</div>`;
+  return `<div class="heading"><div><p class="eyebrow">${t("archive")}</p><h1>${t(route === "home" ? "welcome" : "people")}</h1><p class="muted">${t("subtitle")}</p></div>${button("add", "add", "primary")}</div>${route === "home" ? archiveStats() : ""}<div class="searchbar">${icon("search")}<input id="search" aria-label="${t("search")}" placeholder="${t("search")}" value="${esc(query)}"></div>${route === "people" ? filters() : `<div class="actions">${button("assistant", "assistant")}${button("sync", "sync", "quiet")}</div>`}<div class="section-title"><h2>${t(route === "home" ? "recent" : "people")}</h2><div class="actions"><span class="muted" id="result-count"></span>${viewButtons()}</div></div><div id="results">${results()}</div>`;
 }
 function filters() {
   const options = (arr, v) =>
@@ -225,7 +241,7 @@ function results() {
       $("#result-count").textContent = `${list.length} ${t("count")}`;
   }, 0);
   if (!list.length) return empty(people().length > 0);
-  return `<div class="grid">${list.map(card).join("")}</div>`;
+  return `<div class="grid people-grid ${listView === "list" ? "list-view" : ""}">${list.map(card).join("")}</div>`;
 }
 function profile(id) {
   const e = entry(id);
@@ -317,7 +333,7 @@ function settings() {
           : "photos";
     sizes[k] += Number(f.size) || 0;
   }
-  return `<p class="eyebrow">ARK RECORDS</p><h1>${t("settings")}</h1><div class="settings-grid section-title"><section class="card"><h2>${t("language")} & ${t("theme")}</h2><div class="field"><label for="language">${t("language")}</label><select id="language"><option value="id" ${lang === "id" ? "selected" : ""}>Bahasa Indonesia</option><option value="en" ${lang === "en" ? "selected" : ""}>English</option></select></div><label for="theme">${t("theme")}</label><select id="theme">${["system", "light", "dark"].map((k) => `<option value="${k}" ${theme === k ? "selected" : ""}>${t(k)}</option>`).join("")}</select></section><section class="card"><h2>Google Drive</h2><p class="muted">${t("privacyDetails")}</p><div class="actions">${button(connected ? "logout" : "connect", connected ? "logout" : "connect", "primary")}<a href="SETUP.html" target="_blank" rel="noopener">${t("guide")}</a></div></section><section class="card"><h2>${t("backup")}</h2><p class="muted">${t("backupHelp")}</p><div class="actions">${button("export", "export", "", connected ? "" : "disabled")}${button("import", "import", "", connected ? "" : "disabled")}</div><input type="file" id="backup-file" accept=".arkbackup,application/json" hidden></section><section class="card"><h2>${t("storage")}</h2>${Object.entries(
+  return `<p class="eyebrow">ARK RECORDS</p><h1>${t("settings")}</h1><div class="settings-grid section-title"><section class="card"><h2>${t("language")} & ${t("theme")}</h2><div class="field"><label for="language">${t("language")}</label><select id="language"><option value="id" ${lang === "id" ? "selected" : ""}>Bahasa Indonesia</option><option value="en" ${lang === "en" ? "selected" : ""}>English</option></select></div><label for="theme">${t("theme")}</label><select id="theme">${["system", "light", "dark"].map((k) => `<option value="${k}" ${theme === k ? "selected" : ""}>${t(k)}</option>`).join("")}</select><div class="field appearance-field"><label for="palette">${t('accentColor')}</label><select id="palette">${['cyan','amber','violet'].map(k=>`<option value="${k}" ${palette===k?'selected':''}>${t(k)}</option>`).join('')}</select></div><div class="field"><label for="effects">${t('visualEffects')}</label><select id="effects"><option value="on" ${effects==='on'?'selected':''}>${t('effectsOn')}</option><option value="off" ${effects==='off'?'selected':''}>${t('effectsOff')}</option></select><p class="hint">${t('motionHelp')}</p></div></section><section class="card"><h2>Google Drive</h2><p class="muted">${t("privacyDetails")}</p><div class="actions">${button(connected ? "logout" : "connect", connected ? "logout" : "connect", "primary")}<a href="SETUP.html" target="_blank" rel="noopener">${t("guide")}</a></div></section><section class="card"><h2>${t("backup")}</h2><p class="muted">${t("backupHelp")}</p><div class="actions">${button("export", "export", "", connected ? "" : "disabled")}${button("import", "import", "", connected ? "" : "disabled")}</div><input type="file" id="backup-file" accept=".arkbackup,application/json" hidden></section><section class="card"><h2>${t("storage")}</h2>${Object.entries(
     sizes,
   )
     .map(
@@ -326,7 +342,7 @@ function settings() {
     )
     .join(
       "",
-    )}<div class="stats"><span>${t("total")}</span><strong>${bytes(Object.values(sizes).reduce((a, b) => a + b, 0))}</strong></div><p class="hint">${t("cleanHelp")}</p>${button("clean", "clean", "quiet danger", connected ? "" : "disabled")}</section><section class="card full"><h2>${t("about")} ARK RECORDS</h2><p class="muted">${t("historyNotice")}</p><p class="small muted">v1.0.1 · ${t("privacy")}</p></section></div>${!connected ? connection() : ""}`;
+    )}<div class="stats"><span>${t("total")}</span><strong>${bytes(Object.values(sizes).reduce((a, b) => a + b, 0))}</strong></div><p class="hint">${t("cleanHelp")}</p>${button("clean", "clean", "quiet danger", connected ? "" : "disabled")}</section><section class="card full"><h2>${t("about")} ARK RECORDS</h2><p class="muted">${t("historyNotice")}</p><p class="small muted">v1.1.0 · ${t("privacy")}</p></section></div>${!connected ? connection() : ""}`;
 }
 function field(key, type = "text") {
   return `<div class="field ${key === "notes" ? "full" : ""}"><label for="f-${key}">${t(key)}</label>${key === "notes" || key === "address" ? `<textarea id="f-${key}" name="${key}" maxlength="50000">${esc(draft[key])}</textarea>` : `<input id="f-${key}" name="${key}" type="${type}" value="${esc(draft[key])}" ${key === "name" ? "required" : ""} maxlength="50000">`}${["likes", "dislikes", "hobbies", "interests", "tags"].includes(key) ? `<p class="hint">${t("comma")}</p>` : ""}</div>`;
@@ -536,6 +552,7 @@ window.addEventListener("hashchange", () => {
   )
     route = "home";
   render();
+  if (searchAfterNavigation) { searchAfterNavigation=false; $("#search")?.focus(); }
 });
 window.addEventListener("beforeunload", (e) => {
   if (dirty) {
@@ -583,6 +600,16 @@ document.addEventListener("change", (e) => {
     theme = el.value;
     localStorage.setItem("ark-theme", theme);
     document.documentElement.dataset.theme = theme;
+  }
+  if (el.id === 'effects') {
+    effects = el.value === 'off' ? 'off' : 'on';
+    localStorage.setItem('ark-effects',effects);
+    document.documentElement.dataset.effects = effects;
+  }
+  if (el.id === 'palette' && ['cyan','amber','violet'].includes(el.value)) {
+    palette = el.value;
+    localStorage.setItem('ark-palette',palette);
+    document.documentElement.dataset.palette = palette;
   }
   if (["sort", "relation", "tag"].includes(el.id)) {
     if (el.id === "sort") sort = el.value;
@@ -654,6 +681,15 @@ document.addEventListener("click", (e) => {
   if (!b || busy) return;
   const a = b.dataset.action,
     id = b.dataset.id;
+  if (a === 'commands') { openCommands(); return; }
+  if (a === 'close-commands') { $('#commands').close(); return; }
+  if (a === 'view-layout') {
+    listView = b.dataset.layout === 'list' ? 'list' : 'grid';
+    localStorage.setItem('ark-list-view',listView);
+    render();
+    document.querySelector(`[data-layout="${listView}"]`)?.focus();
+    return;
+  }
   if (a === "connect") {
     signIn();
     return;
@@ -892,3 +928,28 @@ async function makeThumbnail(file) {
     if (url) URL.revokeObjectURL(url);
   }
 }
+
+let searchAfterNavigation = false;
+function openCommands() {
+  if (busy || document.querySelector('dialog[open]')) return;
+  const actions = connected ? ['add','search','assistant','settings'] : ['settings'];
+  $('#commands').innerHTML = `<div class="dialog-head"><div><p class="eyebrow">ARK / CONTROL</p><h2 id="commands-title">${t('quickMenu')}</h2></div>${button('close','close-commands','quiet')}</div><div class="command-options">${actions.map(a=>`<button type="button" data-command="${a}"><span>${icon(a==='search'?'search':a==='add'?'people':a)}${t(a==='search'?'searchPeople':a)}</span><span aria-hidden="true">↵</span></button>`).join('')}</div><p class="command-hint">${t('shortcutHint')}</p>`;
+  $('#commands').showModal();
+}
+document.addEventListener('keydown',e=>{
+  if ((e.ctrlKey || e.metaKey) && e.key.toLowerCase()==='k' && !e.repeat && !e.isComposing) {
+    e.preventDefault(); openCommands();
+  }
+});
+document.addEventListener('click',e=>{
+  const b=e.target.closest('[data-command]'); if(!b || busy) return;
+  const action=b.dataset.command;
+  if(!['add','search','assistant','settings'].includes(action))return;
+  $('#commands').close();
+  if(action==='add'){openEditor();return;}
+  if(action==='search'){
+    if(!connected)return;
+    if(route==='people'){ $('#search')?.focus(); }
+    else { searchAfterNavigation=true; location.hash='people'; }
+  }else location.hash=action;
+});

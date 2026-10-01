@@ -68,3 +68,16 @@ Client ID, stale local configuration precedence, browser-only setup, malformed
 configuration, and failed config fetch. DOM test now verifies a slow Google script,
 hiding redundant setup, and the non-forced account prompt. No access token or Drive
 record was added to persistent browser storage. Real Android OAuth remains unverified.
+
+## v1.1.0 — retro interface
+
+All 13 existing unit/integration tests pass. Extended DOM checks pass for card/list
+layout persistence, command palette opening and launching the add form, Ctrl+K,
+real archive summary counts, palette and effect preferences, and existing login,
+CRUD, search, assistant and logout flows. Original CSP and OAuth scope preserved.
+Font binary and its OFL license are packaged locally. No config.js in the patch.
+
+Real-browser visual QA could not run: the Chromium download endpoint was unavailable.
+Responsive layout, pixel rendering, CSS animations and reduced-motion styling must
+still be visually checked on desktop and Android after deployment. No claim of
+real-device OAuth or visual validation is made from the DOM tests.

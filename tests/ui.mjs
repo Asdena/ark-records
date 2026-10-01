@@ -91,11 +91,32 @@ fill("#search", "coffee");
 assert.match(document.querySelector("#results").textContent, /Sarah/);
 fill("#search", "nobody");
 assert.match(document.querySelector("#results").textContent, /Tidak ada orang/);
+fill('#search','');
+click('[data-layout=list]');
+assert.ok(document.querySelector('.list-view'));
+assert.equal(localStorage.getItem('ark-list-view'),'list');
+click('[data-action=commands]');
+assert.ok(document.querySelector('#commands').open);
+click('[data-command=add]');
+assert.ok(document.querySelector('#editor').open);
+click('[data-action=close-editor]');
+route('#home');
+assert.deepEqual([...document.querySelectorAll('.stat-cell strong')].map(e=>e.textContent),['01','00','00']);
 route("#assistant");
 fill("#ask-form input", "Show Sarah's Instagram");
 submit("#ask-form");
 assert.match(document.querySelector("#answer").textContent, /@sarah/);
 route("#settings");
+for(const [id,value,key] of [['effects','off','ark-effects'],['palette','amber','ark-palette']]){
+ const el=document.querySelector('#'+id);el.value=value;el.dispatchEvent(new win.Event('change',{bubbles:true}));
+ assert.equal(localStorage.getItem(key),value);
+ assert.equal(document.documentElement.dataset[id],value);
+}
+win.dispatchEvent(new win.KeyboardEvent('keydown',{key:'k',ctrlKey:true,bubbles:true}));
+// Keyboard shortcuts are document-scoped.
+document.dispatchEvent(new win.KeyboardEvent('keydown',{key:'k',ctrlKey:true,bubbles:true}));
+assert.ok(document.querySelector('#commands').open);
+click('[data-action=close-commands]');
 const select = document.querySelector("#language");
 select.value = "en";
 select.dispatchEvent(new win.Event("change", { bubbles: true }));
@@ -109,6 +130,6 @@ click("[data-action=logout]");
 assert.equal(document.querySelector("[data-action=export]").disabled, true);
 assert.ok(!document.querySelector("#app").textContent.includes("Sarah"));
 console.log(
-  "DOM integration passed: connect, add, social, search, assistant, XSS escaping, language, logout.",
+  "DOM integration passed: login, CRUD, search, assistant, XSS, language, logout, list layout, quick menu, summary, effect and palette preferences.",
 );
 await win.happyDOM.abort();

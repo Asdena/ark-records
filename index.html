@@ -16,16 +16,19 @@
     <link
       rel="icon"
       type="image/svg+xml"
-      href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 40 40'%3E%3Crect width='40' height='40' rx='10' fill='%237c243c'/%3E%3Cpath d='M10 29 20 10l10 19M14 23h12' stroke='%23fff' stroke-width='3' fill='none'/%3E%3C/svg%3E"
+      href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 40 40'%3E%3Crect width='40' height='40' rx='10' fill='%23080e17'/%3E%3Cpath d='M10 29 20 10l10 19M14 23h12' stroke='%235ff3cf' stroke-width='3' fill='none'/%3E%3C/svg%3E"
     />
     <link rel="stylesheet" href="style.css" />
+    <link rel="stylesheet" href="retro.css?v=1.1.0" />
+    <link rel="preload" href="assets/fonts/PixelifySans.ttf" as="font" type="font/ttf" crossorigin />
     <script id="google-identity" src="https://accounts.google.com/gsi/client" async defer></script>
-    <script type="module" src="app.js?v=1.0.1"></script>
+    <script type="module" src="app.js?v=1.1.0"></script>
   </head>
   <body>
     <div id="app"></div>
     <dialog id="editor"></dialog>
     <dialog id="viewer"></dialog>
+    <dialog id="commands" aria-labelledby="commands-title"></dialog>
     <div id="toast" role="status" aria-live="polite"></div>
     <noscript
       >Aplikasi ini memerlukan JavaScript. / This app requires
