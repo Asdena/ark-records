@@ -1,0 +1,289 @@
+<!doctype html>
+<html lang="id">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width,initial-scale=1" />
+    <title>Pengaturan ARK RECORDS</title>
+    <link rel="stylesheet" href="style.css" />
+  </head>
+  <body>
+    <main class="content">
+      <p class="eyebrow">ARK RECORDS</p>
+      <h1>Aktifkan arsip pribadimu.</h1>
+      <p>
+        Repo dan push kamu lakukan sendiri. Aplikasi ini tidak membutuhkan
+        instalasi paket atau server berbayar.
+      </p>
+      <div class="stack">
+        <section class="card">
+          <h2>1. Terbitkan di GitHub Pages</h2>
+          <ol>
+            <li>
+              Buat repository <strong>public</strong>, misalnya
+              <code>ark-records</code>.
+            </li>
+            <li>
+              Upload isi folder paket ini ke akar repo, sehingga
+              <code>index.html</code> ada langsung di halaman utama repo. Jangan
+              upload ZIP saja.
+            </li>
+            <li>
+              Buka <strong>Settings → Pages</strong>. Pilih
+              <strong>Deploy from a branch</strong>, branch
+              <strong>main</strong>, folder <strong>/(root)</strong>, lalu Save.
+            </li>
+            <li>
+              Tunggu status deployment berhasil. Link biasanya berbentuk
+              <code>https://USERNAME.github.io/ark-records/</code>. Gunakan link
+              yang benar-benar ditampilkan GitHub.
+            </li>
+          </ol>
+          <p>
+            Kode dan halaman awal bersifat publik. Tidak ada arsip pribadi atau
+            password dalam repo. Jangan pernah mengunggah file
+            <code>.arkbackup</code> ke repo.
+          </p>
+        </section>
+        <section class="card">
+          <h2>2. Buat proyek Google</h2>
+          <ol>
+            <li>
+              Buka
+              <a
+                href="https://console.cloud.google.com/"
+                target="_blank"
+                rel="noopener noreferrer"
+                >Google Cloud Console</a
+              >
+              dengan akun Google milikmu.
+            </li>
+            <li>Buat proyek bernama <strong>ARK RECORDS</strong>.</li>
+            <li>
+              Buka <strong>APIs & Services → Library</strong>, cari
+              <strong>Google Drive API</strong>, lalu pilih
+              <strong>Enable</strong>.
+            </li>
+            <li>
+              Buka <strong>Google Auth Platform</strong> atau
+              <strong>OAuth consent screen</strong>. Isi nama aplikasi dan email
+              dukungan milikmu.
+            </li>
+            <li>
+              Pilih audience <strong>External</strong> untuk Gmail pribadi, dan
+              biarkan status <strong>Testing</strong>.
+            </li>
+            <li>
+              Di bagian <strong>Test users</strong>, tambahkan
+              <strong>hanya alamat Gmail kamu sendiri</strong>. Akun ini yang
+              dipakai dari HP dan laptop.
+            </li>
+            <li>
+              Di <strong>Data Access / Scopes</strong>, tambahkan
+              <code>https://www.googleapis.com/auth/drive.appdata</code>.
+              Aplikasi tidak memerlukan izin seluruh Drive.
+            </li>
+          </ol>
+          <p>
+            Nama menu dapat sedikit berubah. Gunakan proyek Google yang sama
+            untuk pemakaian selanjutnya, agar arsip tetap terhubung ke aplikasi
+            yang sama. Tidak perlu membeli paket hosting; kuota dan ketentuan
+            Google tetap berlaku.
+          </p>
+        </section>
+        <section class="card">
+          <h2>3. Buat OAuth Client ID</h2>
+          <ol>
+            <li>
+              Masuk ke <strong>Clients → Create client</strong> atau
+              <strong>Credentials → Create credentials → OAuth client ID</strong
+              >.
+            </li>
+            <li>Pilih <strong>Web application</strong>.</li>
+            <li>
+              Tambahkan <strong>Authorized JavaScript origins</strong>:
+              <code>https://USERNAME.github.io</code>. Ganti USERNAME dengan
+              username GitHub-mu, tanpa nama repo dan tanpa tanda slash di
+              belakang.
+            </li>
+            <li>
+              Untuk uji lokal opsional, tambahkan
+              <code>http://localhost:4173</code> dan
+              <code>http://127.0.0.1:4173</code>.
+            </li>
+            <li>
+              Aplikasi memakai popup Google. Tidak perlu menambah redirect URI
+              untuk alur ini.
+            </li>
+            <li>
+              Salin <strong>Client ID</strong> yang berakhiran
+              <code>.apps.googleusercontent.com</code>.
+              <strong>Jangan salin Client Secret.</strong>
+            </li>
+          </ol>
+        </section>
+        <section class="card">
+          <h2>4. Hubungkan aplikasi</h2>
+          <ol>
+            <li>Buka website ARK RECORDS.</li>
+            <li>
+              Tempel Client ID pada kolom yang tersedia, kemudian pilih
+              <strong>Simpan konfigurasi</strong>.
+            </li>
+            <li>
+              Pilih <strong>Hubungkan Google Drive</strong>. Login menggunakan
+              akun yang terdaftar sebagai test user dan setujui izin data
+              aplikasi.
+            </li>
+            <li>
+              Tambahkan seseorang. Setelah muncul
+              <strong>Tersimpan di Google Drive</strong>, buka link dari HP dan
+              hubungkan akun yang sama.
+            </li>
+            <li>
+              Untuk menghindari memasukkan Client ID di setiap perangkat, isi
+              <code>googleClientId</code> di <code>config.js</code>, lalu push
+              ulang. Client ID adalah konfigurasi publik, bukan password.
+            </li>
+          </ol>
+          <p>
+            Aplikasi tetap terkunci sebelum terhubung. Token login hanya berada
+            di memori halaman; setelah menutup atau memuat ulang halaman kamu
+            perlu menghubungkan lagi. Saat token berakhir, tombol sambungkan
+            kembali akan muncul. Draf yang belum disimpan tidak bertahan setelah
+            halaman ditutup.
+          </p>
+        </section>
+        <section class="card">
+          <h2>5. Pahami penyimpanan</h2>
+          <ul>
+            <li>
+              Arsip menggunakan <strong>appDataFolder</strong>: ruang aplikasi
+              privat dalam akun Drive-mu, bukan folder biasa yang terlihat di My
+              Drive. Data tetap menggunakan kuota Drive.
+            </li>
+            <li>
+              Halaman website publik tidak membuat data Drive publik. Orang lain
+              tidak mendapat akses ke arsipmu dari link website.
+            </li>
+            <li>
+              Data tidak dienkripsi ujung-ke-ujung oleh ARK. Privasi bergantung
+              pada keamanan akun Google dan izin Drive.
+            </li>
+            <li>
+              Jangan menghapus data aplikasi ARK melalui pengaturan Google Drive
+              atau menghapus proyek Google tanpa backup.
+            </li>
+            <li>
+              Tombol <strong>Kunci & keluar</strong> membersihkan sesi lokal.
+              Ini tidak mengeluarkan akun Google dari browser dan tidak mencabut
+              persetujuan aplikasi.
+            </li>
+            <li>
+              Gunakan <strong>Muat ulang dari Drive</strong> untuk melihat
+              perubahan dari perangkat lain. Jika dua perangkat menyimpan
+              bersamaan, pilih versi yang ingin dipertahankan.
+            </li>
+            <li>
+              Setelah menghapus profil/media, gunakan
+              <strong>Pengaturan → Bersihkan riwayat & media terhapus</strong>
+              untuk menghapus file lama secara permanen. Tutup aplikasi di
+              perangkat lain lebih dahulu.
+            </li>
+          </ul>
+        </section>
+        <section class="card">
+          <h2>Backup dan batas versi awal</h2>
+          <p>
+            Ekspor dari Pengaturan menghasilkan <code>.arkbackup</code> berisi
+            data, foto, dan video asli. File ini tidak dienkripsi. Simpan secara
+            pribadi, bukan di repo GitHub. Impor menambahkan salinan dengan
+            identitas baru dan tidak menimpa arsip lama.
+          </p>
+          <ul>
+            <li>Maksimal 50 MB per file media.</li>
+            <li>
+              Maksimal 100 MB per file backup, termasuk encoding media. Ini
+              batas pemrosesan backup di browser, bukan batas total Drive.
+            </li>
+            <li>
+              Video MOV bisa diunggah, tetapi pemutaran bergantung pada codec
+              browser. MP4 atau WebM lebih praktis.
+            </li>
+            <li>
+              Asisten menggunakan aturan sederhana, bukan AI generatif. Tidak
+              menerjemahkan semua istilah kesukaan secara otomatis.
+            </li>
+            <li>
+              Versi ini memerlukan internet untuk membaca dan menyimpan. Tidak
+              menyimpan salinan arsip permanen di browser.
+            </li>
+            <li>
+              Untuk banyak ribuan profil/versi, pemuatan akan melambat.
+              Bersihkan riwayat setelah backup.
+            </li>
+          </ul>
+        </section>
+        <section class="card">
+          <h2>Jika login gagal</h2>
+          <ul>
+            <li>
+              <strong>origin_mismatch:</strong> pastikan origin persis sama,
+              termasuk HTTPS, dan tidak menyertakan path repo.
+            </li>
+            <li>
+              <strong>access_denied:</strong> periksa test user, akun yang
+              dipilih, dan izin scope.
+            </li>
+            <li>
+              <strong>Popup tidak terbuka:</strong> izinkan popup untuk situs
+              ARK, periksa pemblokir script, lalu coba lagi.
+            </li>
+            <li>
+              <strong>Drive belum aktif:</strong> aktifkan Google Drive API pada
+              proyek yang memiliki Client ID.
+            </li>
+            <li>
+              <strong>Akun berubah:</strong> kunci & keluar dahulu, baru
+              hubungkan akun berbeda. Simpan draf di akun semula sebelum
+              beralih.
+            </li>
+            <li>
+              <strong>Data kosong di perangkat lain:</strong> periksa akun
+              Google dan Client ID/proyek yang dipakai, lalu muat ulang Drive.
+            </li>
+          </ul>
+        </section>
+        <section class="card">
+          <h2>Dokumentasi resmi</h2>
+          <ul>
+            <li>
+              <a
+                href="https://docs.github.com/en/pages/getting-started-with-github-pages/creating-a-github-pages-site"
+                >GitHub Pages</a
+              >
+            </li>
+            <li>
+              <a
+                href="https://developers.google.com/identity/oauth2/web/guides/get-google-api-clientid"
+                >Google OAuth Client ID</a
+              >
+            </li>
+            <li>
+              <a
+                href="https://developers.google.com/identity/oauth2/web/guides/use-token-model"
+                >Login Google di browser</a
+              >
+            </li>
+            <li>
+              <a
+                href="https://developers.google.com/workspace/drive/api/guides/appdata"
+                >Penyimpanan privat aplikasi di Drive</a
+              >
+            </li>
+          </ul>
+        </section>
+        <a href="./">Kembali ke ARK RECORDS</a>
+      </div>
+    </main>
+  </body>
+</html>
